@@ -266,9 +266,8 @@ type ahash (a : hash_alg) = lbytes (ahash_size a)
 type hash (nc : config) = lbytes (hash_size nc)
 
 let ahash_max_input (a : hash_alg) : Tot pos =
-  (match Spec.Hash.Definitions.max_input_length a with
-   | Some l -> l
-    | None -> 1)
+  match Spec.Hash.Definitions.max_input_length a with
+  | Some l -> l
 
 let hash_max_input (nc : config) : Tot pos =
   ahash_max_input (get_hash_alg nc)
