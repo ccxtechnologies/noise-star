@@ -34,7 +34,7 @@ SOURCE_DIRS = $(NOISE_HOME) $(NOISE_HOME)/tests $(NOISE_HOME)/instances
 INCLUDE_DIRS = \
   $(SOURCE_DIRS) \
   $(ALL_HACL_DIRS) \
-  $(FSTAR_HOME)/ulib/.cache \
+  $(FSTAR_HOME)/ulib \
   $(KRML_HOME)/krmllib/obj \
   $(KRML_HOME)/krmllib \
   $(NOISE_HOME)/obj \
@@ -45,4 +45,3 @@ FSTAR_INCLUDES = $(addprefix --include ,$(INCLUDE_DIRS))
 
 %.fst-in %.fsti-in:
 	@echo $(FSTAR_INCLUDES)
-
