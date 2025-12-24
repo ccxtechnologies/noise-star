@@ -210,9 +210,10 @@ let aead_encrypt_cp fs key nonce aad_len aad plen plain cipher =
   let output : lbuffer uint8 plen = sub cipher 0ul plen in
   let tag : aead_tag_t = sub cipher plen aead_tag_vs in
   begin match with_norm(fs) with
-  | ImplPolyFields.M32 -> ImplCP32.aead_encrypt key n12 aad_len aad plen plain output tag
-  | ImplPolyFields.M128 -> ImplCP128.aead_encrypt key n12 aad_len aad plen plain output tag
-  | ImplPolyFields.M256 -> ImplCP256.aead_encrypt key n12 aad_len aad plen plain output tag
+  (* Encrypt: output(cipher) -> tag -> input(plain) -> len -> aad -> aad_len -> key -> nonce *)
+  | ImplPolyFields.M32 -> ImplCP32.encrypt output tag plain plen aad aad_len key n12
+  | ImplPolyFields.M128 -> ImplCP128.encrypt output tag plain plen aad aad_len key n12
+  | ImplPolyFields.M256 -> ImplCP256.encrypt output tag plain plen aad aad_len key n12
   end;
   (**) let h1 = HST.get () in
   (**) assert(h1.[|cipher|] `S.equal` (concat h1.[|output|] h1.[|tag|]));
@@ -231,9 +232,11 @@ let aead_decrypt_cp fs key nonce aad_len aad plen plain cipher =
   let tag : aead_tag_t = sub cipher plen aead_tag_vs in
   let r =
     match with_norm(fs) with
-    | ImplPolyFields.M32 -> ImplCP32.aead_decrypt key n12 aad_len aad plen plain output tag
-    | ImplPolyFields.M128 -> ImplCP128.aead_decrypt key n12 aad_len aad plen plain output tag
-    | ImplPolyFields.M256 -> ImplCP256.aead_decrypt key n12 aad_len aad plen plain output tag
+    (* Decrypt: input(plain) -> output(cipher) -> len -> aad -> aad_len -> key -> nonce -> tag *)
+    (* Note: In the error message context, the 2nd param (source) is formally named 'tag' and 1st 'output' *)
+    | ImplPolyFields.M32 -> ImplCP32.decrypt plain output plen aad aad_len key n12 tag
+    | ImplPolyFields.M128 -> ImplCP128.decrypt plain output plen aad aad_len key n12 tag
+    | ImplPolyFields.M256 -> ImplCP256.decrypt plain output plen aad aad_len key n12 tag
   in
   (**) let h1 = HST.get () in
   (**) assert(h1.[|cipher|] `S.equal` (concat h1.[|output|] h1.[|tag|]));
