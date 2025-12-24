@@ -23,6 +23,8 @@ open Spec.Agile.HMAC
 module HKDF = Spec.Agile.HKDF
 open Spec.Agile.HKDF
 
+open Spec.Hash.Definitions
+
 (* We reopen ByteSequence because [lbytes] is redefined there many times in HACL,
  * and sometimes doesn't have exactly the same definition. *)
 open Lib.ByteSequence
@@ -47,13 +49,13 @@ let is_supported_aead_alg (a : AEAD.alg) : bool =
 
 type aead_alg = a:AEAD.alg{is_supported_aead_alg a}
 
-let is_supported_hash_alg (a : Hash.algorithm) : bool =
+let is_supported_hash_alg (a : Spec.Hash.Definitions.hash_alg) : bool =
   match a with
   | SHA2_256 | SHA2_512
   | Blake2S | Blake2B -> true
   | _ -> false
 
-type hash_alg = a:Hash.algorithm{is_supported_hash_alg a}
+type hash_alg = a:Spec.Hash.Definitions.hash_alg{is_supported_hash_alg a}
 
 /// Noise algorithmic configuration:
 /// dh algorithm & aead algorithm & hash algorithm
@@ -264,7 +266,9 @@ type ahash (a : hash_alg) = lbytes (ahash_size a)
 type hash (nc : config) = lbytes (hash_size nc)
 
 let ahash_max_input (a : hash_alg) : Tot pos =
-  Hash.max_input_length a
+  (match Spec.Hash.Definitions.max_input_length a with
+   | Some l -> l
+    | None -> 1)
 
 let hash_max_input (nc : config) : Tot pos =
   ahash_max_input (get_hash_alg nc)
@@ -299,7 +303,7 @@ inline_for_extraction noextract
 let aead_max_input_norm (nc : config) :
   Tot (l:nat{l = aead_max_input nc}) =
   match get_aead_alg nc with
-  | AES256_GCM -> 
+  | AES256_GCM ->
     (**) normalize_term_spec(pow2 31);
     2147483648 (* pow2 31 *)
   | CHACHA20_POLY1305 ->
@@ -409,4 +413,3 @@ type chaining_key (nc : config) = hash nc
 
 type plain_message (nc : config) = s:bytes {is_plain_message_length nc (length s)}
 type aead_aad (nc : config) = s:bytes{length s <= aead_max_input nc}
-
