@@ -264,7 +264,6 @@ let do_hash2 #a #pre impl hash inlen input =
   concat2 (ahash_vs a) hash inlen input data;
   let _ = impl hash data_len data in
   (* There is no need to memzero the data *)
-//  Lib.Memzero0.memzero #uint8 data data_len;
   pop_frame ();
   convert_subtype #unit #(rtype hash_return_type) ()
 
@@ -283,33 +282,35 @@ val do_incr_hash2 //(#a : hash_alg) (#pre : Type0)
                   (update : F.update_st c i t t')
                   (digest : F.digest_st c i t t')
                   (k : (I.Stateful?.s (I.Block?.key c) i)) :
-  hash : lbuffer uint8 (I.Block?.output_length c i l) ->
+  outlen : size_t { size_v outlen == I.Block?.output_length c i l } ->
+  hash : lbuffer uint8 outlen ->
   inlen : size_t ->
   input : lbuffer uint8 inlen ->
   Stack (rtype hash_return_type)
   (requires (fun h ->
     I.Stateful?.invariant (I.Block?.key c) #i h k /\
     live h hash /\ live h input /\
-    v (I.Block?.output_length c i l) + size_v inlen <= I.Block?.max_input_len c i
+	v (I.Block?.init_input_len c i) + (I.Block?.output_length c i l) + size_v inlen <= v (I.Block?.max_input_len c i)
     ))
   (ensures (fun h0 _ h1 ->
     modifies1 hash h0 h1 /\
     h1.[|hash|] `S.equal`
     I.Block?.spec_s c i (I.Stateful?.v (I.Block?.key c) i h0 k)
-                        (Seq.append h0.[|hash|] h0.[|input|])))
+                        (Seq.append h0.[|hash|] h0.[|input|]) l
+						))
 
 let do_incr_hash2 #index #c #i #t #t' l alloca update digest k =
-  fun hash inlen input ->
+  fun outlen hash inlen input ->
   (**) let h0 = HST.get () in
   push_frame ();
   (**) let h1 = HST.get () in
   (**) I.Stateful?.frame_invariant (I.Block?.key c) B.loc_none k h0 h1;
   (**) assert(I.Stateful?.invariant (I.Block?.key c) h1 k);
   let s = alloca k in
-  update s hash (I.Block?.output_length c i l);
+  let _ = update s hash outlen in
   (**) assert(Seq.Base.append Seq.Base.empty h0.[|hash|] `Seq.equal` h0.[|hash|]);
-  update s input inlen;
-  digest s hash;
+  let _ = update s input inlen in
+  digest s hash l;
   (* There is no need to memzero the state *)
   pop_frame ();
   convert_subtype #unit #(rtype hash_return_type) ()
@@ -330,6 +331,7 @@ let hash2_sha2_256 =
                 Hacl.Streaming.SHA2.update_256
                 Hacl.Streaming.SHA2.digest_256
                 ()
+				32ul
 
 let hash2_sha2_512 =
   do_incr_hash2 ()
@@ -337,17 +339,18 @@ let hash2_sha2_512 =
                 Hacl.Streaming.SHA2.update_512
                 Hacl.Streaming.SHA2.digest_512
                 ()
+				64ul
 
 let hmac_sha2_256 output keylen key datalen data =
   (**) normalize_term_spec(Hash.max_input_length Hash.SHA2_256);
-  (**) assert(length key <= Hash.max_input_length Hash.SHA2_256);
+  (**) assert(length key <= Some?.v (Hash.max_input_length Hash.SHA2_256));
   (**) assert(Spec.Agile.HMAC.keysized Hash.SHA2_256 (length key));
   Hacl.HMAC.compute_sha2_256 output key keylen data datalen;
   convert_subtype #unit #(rtype hash_return_type) ()
 
 let hmac_sha2_512 output keylen key datalen data =
   (**) normalize_term_spec(Hash.max_input_length Hash.SHA2_512);
-  (**) assert(length key <= Hash.max_input_length Hash.SHA2_512);
+  (**) assert(length key <= Some?.v (Hash.max_input_length Hash.SHA2_512));
   (**) assert(Spec.Agile.HMAC.keysized Hash.SHA2_512 (length key));
   Hacl.HMAC.compute_sha2_512 output key keylen data datalen;
   convert_subtype #unit #(rtype hash_return_type) ()
