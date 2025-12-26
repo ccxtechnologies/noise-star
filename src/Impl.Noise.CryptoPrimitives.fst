@@ -371,27 +371,27 @@ let hash2_blake2 a m =
   match with_norm(a), with_norm(m) with
   | Hash.Blake2S, ImplBlake2Core.M32 ->
     do_incr_hash2 4ul
-	              Hacl.Streaming.Blake2.blake2s_32_no_key_alloca
-                  Hacl.Streaming.Blake2.blake2s_32_no_key_update
-                  Hacl.Streaming.Blake2.blake2s_32_no_key_digest
+	              Hacl.Streaming.Blake2s_32.alloca_raw
+                  Hacl.Streaming.Blake2s_32.update
+                  Hacl.Streaming.Blake2s_32.digest
                   ()
   | Hash.Blake2S, ImplBlake2Core.M128 ->
     do_incr_hash2 16ul
-	              Hacl.Streaming.Blake2s_128.blake2s_128_no_key_alloca
-                  Hacl.Streaming.Blake2s_128.blake2s_128_no_key_update
-                  Hacl.Streaming.Blake2s_128.blake2s_128_no_key_digest
+	              Hacl.Streaming.Blake2s_128.alloca_raw
+                  Hacl.Streaming.Blake2s_128.update
+                  Hacl.Streaming.Blake2s_128.digest
                   ()
   | Hash.Blake2B, ImplBlake2Core.M32 ->
     do_incr_hash2 4ul
-	              Hacl.Streaming.Blake2.blake2b_32_no_key_alloca
-                  Hacl.Streaming.Blake2.blake2b_32_no_key_update
-                  Hacl.Streaming.Blake2.blake2b_32_no_key_digest
+	              Hacl.Streaming.Blake2b_32.alloca_raw
+                  Hacl.Streaming.Blake2b_32.update
+                  Hacl.Streaming.Blake2b_32.digest
                   ()
   | Hash.Blake2B, ImplBlake2Core.M256 ->
     do_incr_hash2 32ul
-	              Hacl.Streaming.Blake2b_256.blake2b_256_no_key_alloca
-                  Hacl.Streaming.Blake2b_256.blake2b_256_no_key_update
-                  Hacl.Streaming.Blake2b_256.blake2b_256_no_key_digest
+	              Hacl.Streaming.Blake2b_256.alloca_raw
+                  Hacl.Streaming.Blake2b_256.update
+                  Hacl.Streaming.Blake2b_256.digest
                   ()
 
 let hmac_blake2 a m output keylen key datalen data =
