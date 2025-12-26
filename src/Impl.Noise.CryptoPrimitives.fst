@@ -360,11 +360,11 @@ let hmac_sha2_512 output keylen key datalen data =
 let hash_blake2 a m output inlen input =
   begin match with_norm(a), with_norm(m) with
   | Hash.Blake2S, ImplBlake2Core.M32 ->
-    Hacl.Streaming.Blake2s_32.hash_with_key output 4ul input inlen (null #MUT #uint8) 0ul
+    Hacl.Streaming.Blake2s_32.hash_with_key output 32ul input inlen (null #MUT #uint8) 0ul
   | Hash.Blake2S, ImplBlake2Core.M128 ->
     Hacl.Streaming.Blake2s_128.hash_with_key output 32ul input inlen (null #MUT #uint8) 0ul
   | Hash.Blake2B, ImplBlake2Core.M32 ->
-    Hacl.Streaming.Blake2b_32.hash_with_key output 4ul input inlen (null #MUT #uint8) 0ul
+    Hacl.Streaming.Blake2b_32.hash_with_key output 64ul input inlen (null #MUT #uint8) 0ul
   | Hash.Blake2B, ImplBlake2Core.M256 ->
     Hacl.Streaming.Blake2b_256.hash_with_key output 64ul input inlen (null #MUT #uint8) 0ul
   end;
