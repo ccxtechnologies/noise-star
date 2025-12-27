@@ -373,66 +373,91 @@ let hash_blake2 a m output inlen input =
 let hash2_blake2 a m =
   let open Hacl.Streaming.Blake2.Params in
   match with_norm(a), with_norm(m) with
-  (* 1. BLAKE2S (32-bit) *)
   | Hash.Blake2S, ImplBlake2Core.M32 ->
-      let kk = { key_length = 0uy; digest_length = 32uy; last_node = false } in
-      (* Allocate params 'p' on the stack here. It remains live while do_incr_hash2 runs. *)
-      let p = Hacl.Streaming.Blake2.Params.alloca Spec.Blake2.Blake2S kk in
-      let k = LowStar.Buffer.null in
-      let key = (p, k) in
+      (fun hash inlen input ->
+        push_frame();
 
-      do_incr_hash2
-        ()
-        (Hacl.Streaming.Blake2s_32.alloca_raw kk)
-        (Hacl.Streaming.Blake2s_32.update (FStar.Ghost.hide kk))
-        (fun s h l -> let _ = Hacl.Streaming.Blake2s_32.digest (FStar.Ghost.hide kk) s h l in ())
-        key (* Pass the (p, k) tuple here *)
-        (Lib.IntTypes.size 32)
+        let kk = { key_length = 0uy; digest_length = 32uy; last_node = false } in
+        let p = Hacl.Streaming.Blake2.Params.alloca Spec.Blake2.Blake2S kk in
+        let k = LowStar.Buffer.null in
+        let key = (p, k) in
 
-  (* 2. BLAKE2S (128-bit) *)
+        let res = do_incr_hash2
+          ()
+          (Hacl.Streaming.Blake2s_32.alloca_raw kk)
+          (Hacl.Streaming.Blake2s_32.update (FStar.Ghost.hide kk))
+          (fun s h l -> let _ = Hacl.Streaming.Blake2s_32.digest (FStar.Ghost.hide kk) s h l in ())
+          key
+          (Lib.IntTypes.size 32)
+          hash inlen input
+        in
+
+        pop_frame();
+        res
+      )
+
   | Hash.Blake2S, ImplBlake2Core.M128 ->
-      let kk = { key_length = 0uy; digest_length = 32uy; last_node = false } in
-      let p = Hacl.Streaming.Blake2.Params.alloca Spec.Blake2.Blake2S kk in
-      let k = LowStar.Buffer.null in
-      let key = (p, k) in
+      (fun hash inlen input ->
+        push_frame();
+        let kk = { key_length = 0uy; digest_length = 32uy; last_node = false } in
+        let p = Hacl.Streaming.Blake2.Params.alloca Spec.Blake2.Blake2S kk in
+        let k = LowStar.Buffer.null in
+        let key = (p, k) in
 
-      do_incr_hash2
-        ()
-        (Hacl.Streaming.Blake2s_128.alloca_raw kk)
-        (Hacl.Streaming.Blake2s_128.update (FStar.Ghost.hide kk))
-        (fun s h l -> let _ = Hacl.Streaming.Blake2s_128.digest (FStar.Ghost.hide kk) s h l in ())
-        key
-        (Lib.IntTypes.size 32)
+        let res = do_incr_hash2
+          ()
+          (Hacl.Streaming.Blake2s_128.alloca_raw kk)
+          (Hacl.Streaming.Blake2s_128.update (FStar.Ghost.hide kk))
+          (fun s h l -> let _ = Hacl.Streaming.Blake2s_128.digest (FStar.Ghost.hide kk) s h l in ())
+          key
+          (Lib.IntTypes.size 32)
+          hash inlen input
+        in
+        pop_frame();
+        res
+      )
 
-  (* 3. BLAKE2B (32-bit) *)
   | Hash.Blake2B, ImplBlake2Core.M32 ->
-      let kk = { key_length = 0uy; digest_length = 64uy; last_node = false } in
-      let p = Hacl.Streaming.Blake2.Params.alloca Spec.Blake2.Blake2B kk in
-      let k = LowStar.Buffer.null in
-      let key = (p, k) in
+      (fun hash inlen input ->
+        push_frame();
+        let kk = { key_length = 0uy; digest_length = 64uy; last_node = false } in
+        let p = Hacl.Streaming.Blake2.Params.alloca Spec.Blake2.Blake2B kk in
+        let k = LowStar.Buffer.null in
+        let key = (p, k) in
 
-      do_incr_hash2
-        ()
-        (Hacl.Streaming.Blake2b_32.alloca_raw kk)
-        (Hacl.Streaming.Blake2b_32.update (FStar.Ghost.hide kk))
-        (fun s h l -> let _ = Hacl.Streaming.Blake2b_32.digest (FStar.Ghost.hide kk) s h l in ())
-        key
-        (Lib.IntTypes.size 64)
+        let res = do_incr_hash2
+          ()
+          (Hacl.Streaming.Blake2b_32.alloca_raw kk)
+          (Hacl.Streaming.Blake2b_32.update (FStar.Ghost.hide kk))
+          (fun s h l -> let _ = Hacl.Streaming.Blake2b_32.digest (FStar.Ghost.hide kk) s h l in ())
+          key
+          (Lib.IntTypes.size 64)
+          hash inlen input
+        in
+        pop_frame();
+        res
+      )
 
-  (* 4. BLAKE2B (256-bit) *)
   | Hash.Blake2B, ImplBlake2Core.M256 ->
-      let kk = { key_length = 0uy; digest_length = 64uy; last_node = false } in
-      let p = Hacl.Streaming.Blake2.Params.alloca Spec.Blake2.Blake2B kk in
-      let k = LowStar.Buffer.null in
-      let key = (p, k) in
+      (fun hash inlen input ->
+        push_frame();
+        let kk = { key_length = 0uy; digest_length = 64uy; last_node = false } in
+        let p = Hacl.Streaming.Blake2.Params.alloca Spec.Blake2.Blake2B kk in
+        let k = LowStar.Buffer.null in
+        let key = (p, k) in
 
-      do_incr_hash2
-        ()
-        (Hacl.Streaming.Blake2b_256.alloca_raw kk)
-        (Hacl.Streaming.Blake2b_256.update (FStar.Ghost.hide kk))
-        (fun s h l -> let _ = Hacl.Streaming.Blake2b_256.digest (FStar.Ghost.hide kk) s h l in ())
-        key
-        (Lib.IntTypes.size 64)
+        let res = do_incr_hash2
+          ()
+          (Hacl.Streaming.Blake2b_256.alloca_raw kk)
+          (Hacl.Streaming.Blake2b_256.update (FStar.Ghost.hide kk))
+          (fun s h l -> let _ = Hacl.Streaming.Blake2b_256.digest (FStar.Ghost.hide kk) s h l in ())
+          key
+          (Lib.IntTypes.size 64)
+          hash inlen input
+        in
+        pop_frame();
+        res
+      )
 
 let hmac_blake2 a m output keylen key datalen data =
   [@inline_let]
