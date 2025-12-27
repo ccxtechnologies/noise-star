@@ -343,14 +343,14 @@ let hash2_sha2_512 =
 
 let hmac_sha2_256 output keylen key datalen data =
   (**) normalize_term_spec(Hash.max_input_length Hash.SHA2_256);
-  (**) assert(length key <= Hash.max_input_length Hash.SHA2_256);
+  (**) assert(length key <= Some?.v (Hash.max_input_length Hash.SHA2_256));
   (**) assert(Spec.Agile.HMAC.keysized Hash.SHA2_256 (length key));
   Hacl.HMAC.compute_sha2_256 output key keylen data datalen;
   convert_subtype #unit #(rtype hash_return_type) ()
 
 let hmac_sha2_512 output keylen key datalen data =
   (**) normalize_term_spec(Hash.max_input_length Hash.SHA2_512);
-  (**) assert(length key <= Hash.max_input_length Hash.SHA2_512);
+  (**) assert(length key <= Some?.v (Hash.max_input_length Hash.SHA2_512));
   (**) assert(Spec.Agile.HMAC.keysized Hash.SHA2_512 (length key));
   Hacl.HMAC.compute_sha2_512 output key keylen data datalen;
   convert_subtype #unit #(rtype hash_return_type) ()
@@ -360,11 +360,11 @@ let hmac_sha2_512 output keylen key datalen data =
 let hash_blake2 a m output inlen input =
   begin match with_norm(a), with_norm(m) with
   | Hash.Blake2S, ImplBlake2Core.M32 ->
-    Hacl.Streaming.Blake2s_32.hash_with_key output 4ul input inlen (null #MUT #uint8) 0ul
+    Hacl.Streaming.Blake2s_32.hash_with_key output 32ul input inlen (null #MUT #uint8) 0ul
   | Hash.Blake2S, ImplBlake2Core.M128 ->
     Hacl.Streaming.Blake2s_128.hash_with_key output 32ul input inlen (null #MUT #uint8) 0ul
   | Hash.Blake2B, ImplBlake2Core.M32 ->
-    Hacl.Streaming.Blake2b_32.hash_with_key output 4ul input inlen (null #MUT #uint8) 0ul
+    Hacl.Streaming.Blake2b_32.hash_with_key output 64ul input inlen (null #MUT #uint8) 0ul
   | Hash.Blake2B, ImplBlake2Core.M256 ->
     Hacl.Streaming.Blake2b_256.hash_with_key output 64ul input inlen (null #MUT #uint8) 0ul
   end;
