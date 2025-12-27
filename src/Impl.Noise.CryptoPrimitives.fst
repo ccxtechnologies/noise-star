@@ -316,11 +316,11 @@ let do_incr_hash2 #index #c #i #t #t' alloca update finish k =
 (**** SHA2 *)
 
 let hash_sha2_256 output inlen input =
-  ImplSHA2.hash_256 input inlen output;
+  Hacl.Streaming.SHA2.hash_256 output input inlen;
   convert_subtype #unit #(rtype hash_return_type) ()
 
 let hash_sha2_512 output inlen input =
-  ImplSHA2.hash_512 input inlen output;
+  Hacl.Streaming.SHA2.hash_512 output input inlen;
   convert_subtype #unit #(rtype hash_return_type) ()
 
 let hash2_sha2_256 =
