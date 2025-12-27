@@ -149,7 +149,7 @@ let state_t_handshake_invariant_stateful
   // Liveness
   live m k /\
   live m ck /\
-  live m h /\ 
+  live m h /\
   lbuffer_or_unit_live m spriv /\
   lbuffer_or_unit_live m spub /\
   lbuffer_or_unit_live m epriv /\
@@ -673,7 +673,7 @@ let process_premessages_smi_pre
   (send_pre = Some [PS] ==> has_pretoken smi PS) /\
   (recv_pre = Some [PS] ==>
    rsb = true && no_remote_pretoken smi PS
-   && is_valid_hsm (receive_pretoken_update_smi PS smi) st)  
+   && is_valid_hsm (receive_pretoken_update_smi PS smi) st)
 
 [@@ noextract_to "krml"] inline_for_extraction noextract
 val process_premessages :
@@ -913,7 +913,7 @@ val mk_state_t_create_state_no_alloc :
     end))
 
 #push-options "--z3rlimit 200"
-let mk_state_t_create_state_no_alloc #isc ssi initialize initiator prlg_len prlg 
+let mk_state_t_create_state_no_alloc #isc ssi initialize initiator prlg_len prlg
                                      pname_len pname epriv epub #rsb rs
                                      #pskb psk st =
   (**) let h0 = ST.get () in
@@ -1035,7 +1035,7 @@ let mk_state_t_create_state =
   ST.recall_region r_state;
   (**) let h2 = ST.get () in
   let pname : lbuffer uint8 pname_len = compute_protocol_name_alloca nc pattern_name in
-  mk_state_t_create_state_no_alloc #isc ssi initialize initiator prlg_len prlg 
+  mk_state_t_create_state_no_alloc #isc ssi initialize initiator prlg_len prlg
                                    pname_len pname epriv epub #rsb rs
                                    #pskb psk st;
   (**) pop_frame ();
@@ -1158,7 +1158,7 @@ val compute_messagei_len
     match s with
     | Some s ->
       size_v step < List.Tot.length pat.messages /\
-      size_v s = 
+      size_v s =
         size_v payload_len + compute_message_length nc pat (size_v step)
     | None -> True))
   (decreases (List.Tot.length (isc_get_pattern isc).messages - i))
@@ -1225,7 +1225,7 @@ val compute_payloadi_len
     match s with
     | Some s ->
       size_v step < List.Tot.length pat.messages /\
-      size_v s + compute_message_length nc pat (size_v step) = 
+      size_v s + compute_message_length nc pat (size_v step) =
         size_v message_len
     | None -> True))
   (decreases (List.Tot.length (isc_get_pattern isc).messages - i))
@@ -1314,10 +1314,10 @@ let send_message_post
   (pattern : list message_token)
   (payload_len : plain_message_len_t nc) (payload : plain_message_t nc payload_len)
   (st : valid_send_message_hsm nc is_psk pattern smi)
-  (outlen : size_t) (out : lbuffer uint8 outlen) 
+  (outlen : size_t) (out : lbuffer uint8 outlen)
   (h0 : mem) (r : rtype (send_message_return_type smi is_psk pattern)) (h1 : mem) =
   send_message_tokens_with_payload_post #nc smi initiator is_psk pattern payload_len payload
-                                        st outlen out h0 r h1    
+                                        st outlen out h0 r h1
 
 let send_message_pre_lem
   (#nc : iconfig) (smi : meta_info) (initiator is_psk : bool)
@@ -1332,7 +1332,7 @@ let send_message_post_lem
   (pattern : list message_token)
   (payload_len : plain_message_len_t nc) (payload : plain_message_t nc payload_len)
   (st : valid_send_message_hsm nc is_psk pattern smi)
-  (outlen : size_t) (out : lbuffer uint8 outlen) 
+  (outlen : size_t) (out : lbuffer uint8 outlen)
   (h0 : mem) (r : rtype (send_message_return_type smi is_psk pattern)) (h1 : mem) = ()
 
 #push-options "--z3rlimit 500 --ifuel 1"
@@ -1370,7 +1370,7 @@ let mk_state_t_handshake_write #isc smi i send_message
     (**) let h1 = ST.get () in
     if is_success res then
       begin
-      
+
       (* The proof fails if we omit this block of assertions *)
       begin
       (**) let st0_v = handshake_state_t_v_with_smi h0 st smi in
@@ -1386,7 +1386,7 @@ let mk_state_t_handshake_write #isc smi i send_message
       (**) let Res (msg_v, st1_v) = res in
       (**) assert(msg_v == as_seq h1 out)
       end;
-      
+
       [@inline_let] let step' = UInt32.add step (UInt32.uint_to_t 1) in
       [@inline_let]
       let st1 =
@@ -1599,7 +1599,7 @@ let mk_receive_lookup_message_tokens_with_payload_no_S_no_vst
     (**) let h1 = ST.get () in
     if is_success res then
       begin
-      
+
       [@inline_let] let step' = UInt32.add step (UInt32.uint_to_t 1) in
 
       begin
@@ -1657,7 +1657,7 @@ let mk_receive_lookup_message_tokens_with_payload_no_S_pre
     #isc smi i payload_outlen payload_out st inlen input h0 /\
 
   vfunct.vst.St.invariant h0 vst /\
-  
+
   B.loc_disjoint (state_t_footprint st) vst_footprint /\
   B.loc_disjoint vst_footprint (B.loc_buffer (payload_out <: buffer uint8)) /\
   B.loc_disjoint vst_footprint (B.loc_buffer (input <: buffer uint8))
@@ -1757,7 +1757,7 @@ val mk_check_remote_static :
     (recv_psk ==> not (g_is_null (hsm_get_preshared st))) /\
     smi.hsf.rs /\
     not smi.hsf.psk /\
-            
+
     begin
     let vst_footprint = vfunct.vst.St.footprint vst in
     let st_loc = hsm_loc st in
@@ -1848,7 +1848,7 @@ val mk_hs_state_receive_lookup_message_tokens_nout_with_payload_with_S_end :
 
     live h0 payload_out /\
     live h0 input /\
-    
+
     begin
     let payload_out_loc = B.loc_buffer (payload_out <: buffer uint8) in
     let input_loc = B.loc_buffer (input <: buffer uint8) in
@@ -1877,7 +1877,7 @@ val mk_hs_state_receive_lookup_message_tokens_nout_with_payload_with_S_end :
     is_valid_hsm post_smi st /\
     check_receive_message_smi (smi_or_set_psk recv_psk smi) initiator is_psk tokens /\
     tokens_message_size (get_config nc) smi.hsf.sk is_psk tokens <= max_size_t /\
-    
+
     is_plain_message_length (get_config nc) (size_v payload_outlen) /\
     size_v payload_outlen + aead_tag_size + hash_vsv nc <= max_size_t /\
     size_v inlen = message_vsv nc smi is_psk tokens (size_v payload_outlen) /\
@@ -2053,7 +2053,7 @@ val mk_hs_state_receive_lookup_message_tokens_nout_with_payload_with_S_beg_end :
 
     live h0 payload_out /\
     live h0 input /\
-    
+
     begin
     let payload_out_loc = B.loc_buffer (payload_out <: buffer uint8) in
     let input_loc = B.loc_buffer (input <: buffer uint8) in
@@ -2078,7 +2078,7 @@ val mk_hs_state_receive_lookup_message_tokens_nout_with_payload_with_S_beg_end :
     let has_sym_key' = tokens_update_sym_key_flag has_sym_key is_psk tokens in
     let tks_msg_length =
       size_v inlen - tokens_message_size (get_config nc) has_sym_key is_psk tokens in
-    
+
     List.Tot.mem S tokens /\
     splitAtFirstElem S tokens = (tokens_beg, tokens_end) /\
     isc_valid_meta_info isc post_smi /\
@@ -2157,7 +2157,7 @@ let decompose_receive_tokens_update_smi_lem_eq (recv_psk is_psk : bool)
   let smi3 = receive_message_update_smi is_psk tokens_end smi2 in
   let smi3' = smi_or_set_psk recv_psk (receive_message_update_smi is_psk tokens smi) in
   receive_tokens_update_smi_decompose_lem is_psk tokens_beg tokens_end smi;
-  receive_tokens_update_hsf_frame_lem is_psk tokens_end smi1.hsf;  
+  receive_tokens_update_hsf_frame_lem is_psk tokens_end smi1.hsf;
   updt_sk_consistent_with_receive_tokens_update_hsf_lem is_psk tokens_beg smi.hsf;
   updt_sk_consistent_with_receive_tokens_update_hsf_lem is_psk tokens_end smi2.hsf
 
@@ -2241,7 +2241,7 @@ let mk_hs_state_receive_lookup_message_tokens_nout_with_payload_with_S_beg_end
     end
   else
     Fail (to_prim_error_code r1)
-#pop-options  
+#pop-options
 
 /// We separately define the different parts of the receive lookup function
 /// precondition, so as to reuse it in several places.
@@ -2427,7 +2427,7 @@ let mk_receive_lookup_message_tokens_with_payload_with_S
       #isc smi initiator is_psk tokens_beg tokens_end
       (convert_type receive_beg) (convert_type receive_end) vfunct vst
       pinfo payload_outlen payload_out hsm inlen input
-    
+
     end
 #pop-options
 
@@ -2463,7 +2463,7 @@ let mk_state_t_handshake_read_no_S
   [@inline_let]
   let IMS_Handshake step st_k st_ck st_h st_spriv st_spub
                     st_epriv st_epub st_rs st_re st_psk = st in
-  
+
   let r =
     mk_receive_lookup_message_tokens_with_payload_no_S #isc smi
       i receive_message vfunct vst payload_outlen payload_out st inlen input
@@ -2508,7 +2508,7 @@ let mk_state_t_handshake_read_with_S
   [@inline_let]
   let IMS_Handshake step st_k st_ck st_h st_spriv st_spub
                     st_epriv st_epub st_rs st_re st_psk = st in
-  
+
   let r =
     mk_receive_lookup_message_tokens_with_payload_with_S #isc smi
       i impls vfunct vst pinfo payload_outlen payload_out st inlen input
@@ -2527,7 +2527,7 @@ let mk_state_t_handshake_read_with_S
 (*** Split *)
 
 #restart-solver
-#push-options "--z3rlimit 600"
+#push-options "--z3rlimit 800 --fuel 1 --ifuel 1"
 let mk_state_t_split #isc #initiator smi split r st =
   (**) let h0 = ST.get () in
 
@@ -2644,7 +2644,7 @@ let aaead_check_size (a : aead_alg) (plen clen : size_t) :
     size_v clen = size_v plen + aead_tag_size
     end)) =
   (**) assert(aaead_max_input a + aead_tag_size <= max_size_t);
-  [@inline_let] let b = 
+  [@inline_let] let b =
   FStar.UInt32.(plen <=^ size (with_onorm(aaead_max_input a))) &&
   FStar.UInt32.(clen =^ plen +^ size aead_tag_size)
   in
