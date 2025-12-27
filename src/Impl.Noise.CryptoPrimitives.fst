@@ -291,7 +291,7 @@ val do_incr_hash2 //(#a : hash_alg) (#pre : Type0)
   (requires (fun h ->
     I.Stateful?.invariant (I.Block?.key c) #i h k /\
     live h hash /\ live h input /\
-    v (I.Block?.output_length c i l) + size_v inlen <= v (I.Block?.max_input_len c i)
+    v (I.Block?.output_length c i l) + size_v inlen <= I.Block?.max_input_len c i
     ))
   (ensures (fun h0 _ h1 ->
     modifies1 hash h0 h1 /\
