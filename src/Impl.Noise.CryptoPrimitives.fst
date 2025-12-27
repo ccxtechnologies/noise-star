@@ -291,7 +291,7 @@ val do_incr_hash2 //(#a : hash_alg) (#pre : Type0)
   (requires (fun h ->
     I.Stateful?.invariant (I.Block?.key c) #i h k /\
     live h hash /\ live h input /\
-    v (I.Block?.output_length c i l) + size_v inlen <= I.Block?.max_input_len c i
+    FStar.UInt32.v (I.Block?.init_input_len c i) + I.Block?.output_length c i l + size_v inlen <= FStar.UInt64.v (I.Block?.max_input_len c i)
     ))
   (ensures (fun h0 _ h1 ->
     modifies1 hash h0 h1 /\
@@ -329,7 +329,7 @@ let hash2_sha2_256 =
    do_incr_hash2 ()
                  Hacl.Streaming.SHA2.alloca_256
                  Hacl.Streaming.SHA2.update_256
-                 (fun s h _ -> Hacl.Streaming.SHA2.digest_256 s h)
+                 Hacl.Streaming.SHA2.digest_256
                  ()
                  32ul
 
@@ -337,7 +337,7 @@ let hash2_sha2_512 =
    do_incr_hash2 ()
                  Hacl.Streaming.SHA2.alloca_512
                  Hacl.Streaming.SHA2.update_512
-                 (fun s h _ -> Hacl.Streaming.SHA2.digest_512 s h)
+                 Hacl.Streaming.SHA2.digest_512
                  ()
                  64ul
 
