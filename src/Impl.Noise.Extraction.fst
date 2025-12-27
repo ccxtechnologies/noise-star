@@ -578,7 +578,7 @@ let simplify_smi_ids = List.append proj_ids update_smi_ids
 (* TODO: [meta_ids] is only used to simplify the pattern compilation.
  * We should be able to make it smaller *)
 noextract
-let meta_ids = List.append [  
+let meta_ids = List.append [
   `%get_config;
   `%iconfig;
   `%config;
@@ -645,7 +645,7 @@ let meta_ids = List.append [
   `%List.Tot.hd;
   `%List.Tot.tl;
   `%List.Tot.tail;
-  
+
   `%is_even;
 ] simplify_smi_ids
 
@@ -664,7 +664,7 @@ let rec is_in_searched_types (debug : bool)
     print_dbg debug "Tv_Arrow:";
     print_dbg debug (term_to_string ty);
      begin match inspect_comp c with
-     | C_Total ret_ty _ ->
+     | C_Total ret_ty ->
        is_in_searched_types debug type_ids arity ret_ty
      | _ -> None
      end
