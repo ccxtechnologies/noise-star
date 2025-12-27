@@ -20,7 +20,7 @@ module Impl.Noise.LinkedList
 /// the case we just have to pop the head. Also, it should be possible
 /// to factorize several signatures between [filter] and [filter_one],
 /// a bit like what we did for the non tail-call version.
-/// 
+///
 /// If implemented for [filter], the loop versions of [filter] and [filter_one]
 /// are, in a sense, strictly better than the recursive ones, because they
 /// are the ones we want to extract. However, it is probably a good idea
@@ -693,7 +693,7 @@ let find_loop #dt l_all l_mod lltp llvp #inv #inv_lem #fspec f =
     (**) elems_frame_invariant llv l_mod h0 h1
     end
   in
-  
+
   // The original list is included in itself
   (**) list_in_listP_refl (B.deref h00 llvp);
   (**) assert(inv' h00);
@@ -753,7 +753,7 @@ let find #dt ll #inv #inv_lem #fspec rtype f =
   find_loop #dt l_all l_mod lltp llvp #inv' #inv_lem' #fspec f';
   (**) let h3 = get () in
   (**) assert(B.modifies l_mod h2 h3);
-  let llt = !* lltp in 
+  let llt = !* lltp in
   let res: f_rty rtype =
     if B.is_null llt then f_no_elem
     else
@@ -784,7 +784,7 @@ let _ = ()
 /// ---------------
 
 #restart-solver
-#push-options "--z3rlimit 50 --fuel 1 --ifuel 1"
+#push-options "--z3rlimit 400 --fuel 2 --ifuel 1"
 let push #dt ll input =
   (**) let h0 = get () in
   let r_new = !* ll.r_new in
@@ -840,7 +840,7 @@ let push #dt ll input =
 /// Removing elements
 /// -----------------
 
-#push-options "--fuel 1 --ifuel 1"
+#push-options "--z3rlimit 400 --fuel 2 --ifuel 1"
 let pop #dt ll =
   (**) let h0 = get () in
   let elem1 = LL1.pop ll.r_spine (!* ll.elems) ll.ptr in
@@ -1119,7 +1119,7 @@ let rec filtered_footprint_invariants_lem #dt filter_all fspec ll h0 =
 #pop-options
 
 (** Non-tail call recursive versions of filter and filter_one *)
-    
+
 /// A generic signature which is used both for filter and filter_one
 inline_for_extraction noextract
 let ll1_filter_ntc_gen_st (filter_all : bool) // if true: filter, if false: filter_one
@@ -1453,7 +1453,7 @@ let filter_one_ntc #dt ll #inv #inv_lem #fspec f =
 #pop-options
 
 (** Tail-call version of filter_one *)
-    
+
 /// A generic signature which is used both for filter and filter_one
 inline_for_extraction noextract
 let ll1_filter_one_tc_st =
@@ -1492,7 +1492,7 @@ let rec ll1_filter_one_tc #dt l_ref #inv #inv_lem #fspec f ll llv =
   (**) let h0 = get () in
   let c0 : LL1.cell (dt_s dt) = B.index ll 0ul in
   [@inline_let] let x0 = c0.LL1.data in
-  [@inline_let] let next0 = c0.LL1.next in  
+  [@inline_let] let next0 = c0.LL1.next in
   if B.is_null next0 then ()
   else
     begin
@@ -1617,7 +1617,7 @@ let filter_one_tc #dt ll #inv #inv_lem #fspec f =
     begin
     let c0 = !* llt in
     [@inline_let] let x0 = c0.LL1.data in
-    if f x0 then 
+    if f x0 then
       filter_one_tc_valid_head ll f
     else
       pop ll
@@ -2212,7 +2212,7 @@ let filter_one_find_loop_body #dt l_all l_mod lltp00 lltp llvp #inv #inv_lem #fs
   (**)     let l12 = (B.loc_union l_mod (elements_list_footprint h1 llt1 llv1)) in
   (**)     assert(B.modifies l12 h1 h2);
   (**)     assert(B.loc_disjoint l_mod (dt_footprint filtered0_hd));
-  (**)     
+  (**)
   (**)     elems_pairwise_disjoint_implies_disjoint_from_footprint filtered0_hd llv1;
   (**)     assert(B.loc_disjoint (elements_list_footprint h1 llt1 llv1) (dt_footprint filtered0_hd));
   (**)     assert(B.loc_disjoint l12 (dt_footprint filtered0_hd));
@@ -2222,7 +2222,7 @@ let filter_one_find_loop_body #dt l_all l_mod lltp00 lltp llvp #inv #inv_lem #fs
   (**)     assert(B.live h2 llt0);
   (**)     assert(B.loc_includes (LL1.footprint h0 llt0 llv0) (LL1.footprint h2 llt0 filtered0));
   (**)     assert(B.loc_includes (elems_footprint llv0) (elems_footprint filtered0));
-  (**)     assert(gsame_elementsp filtered0 h0 h2);      
+  (**)     assert(gsame_elementsp filtered0 h0 h2);
   (**)     assert(filter_one_find_loop_magic_wand_post l_all l_mod lltp llvp f h0 h2);
 
   (**)     assert(filter_one_find_loop_magic_wand_post l_all l_mod lltp00 llvp f h00 h2)
@@ -2494,7 +2494,7 @@ val filter_one_loop_valid_head_filter_one_element
 let filter_one_loop_valid_head_filter_one_element
   #dt l_all l_mod ll lltp00 lltp llvp llt llv c0 #inv #inv_lem #fspec f h00 =
   (**) let h0 = get () in
-  
+
   let c1 = !* c0.LL1.next in
   B.upd llt 0ul (LL1.Mkcell c1.LL1.next c0.LL1.data);
   (**) let h1_0 = get () in
@@ -2668,7 +2668,7 @@ let filter_one_loop #dt ll #inv #inv_lem #fspec f =
     begin
     let c0 = !* llt in
     [@inline_let] let x0 = c0.LL1.data in
-    if f x0 then 
+    if f x0 then
       filter_one_loop_valid_head ll f
     else
       pop ll
