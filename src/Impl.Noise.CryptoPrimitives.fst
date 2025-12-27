@@ -371,27 +371,67 @@ let hash_blake2 a m output inlen input =
   convert_subtype #unit #(rtype hash_return_type) ()
 
 let hash2_blake2 a m =
+  let open Hacl.Streaming.Blake2.Params in
   match with_norm(a), with_norm(m) with
+  (* 1. BLAKE2S (32-bit implementation) *)
   | Hash.Blake2S, ImplBlake2Core.M32 ->
-    do_incr_hash2 Hacl.Streaming.Blake2.blake2s_32_no_key_alloca
-                  Hacl.Streaming.Blake2.blake2s_32_no_key_update
-                  Hacl.Streaming.Blake2.blake2s_32_no_key_finish
-                  ()
+      let kk = { key_length = 0uy; digest_length = 32uy; last_node = false } in
+      let alloca_w () =
+        let p = Hacl.Streaming.Blake2.Params.alloca Spec.Blake2.Blake2S kk in
+        let k = LowStar.Buffer.null in
+        Hacl.Streaming.Blake2s_32.alloca_raw kk (p, k)
+      in
+      do_incr_hash2 32ul
+                    alloca_w
+                    (Hacl.Streaming.Blake2s_32.update (FStar.Ghost.hide kk))
+                    (fun s h l -> let _ = Hacl.Streaming.Blake2s_32.digest (FStar.Ghost.hide kk) s h l in ())
+                    ()
+                    32ul
+
+  (* 2. BLAKE2S (128-bit SIMD implementation) *)
   | Hash.Blake2S, ImplBlake2Core.M128 ->
-    do_incr_hash2 Hacl.Streaming.Blake2s_128.blake2s_128_no_key_alloca
-                  Hacl.Streaming.Blake2s_128.blake2s_128_no_key_update
-                  Hacl.Streaming.Blake2s_128.blake2s_128_no_key_finish
-                  ()
+      let kk = { key_length = 0uy; digest_length = 32uy; last_node = false } in
+      let alloca_w () =
+        let p = Hacl.Streaming.Blake2.Params.alloca Spec.Blake2.Blake2S kk in
+        let k = LowStar.Buffer.null in
+        Hacl.Streaming.Blake2s_128.alloca_raw kk (p, k)
+      in
+      do_incr_hash2 32ul
+                    alloca_w
+                    (Hacl.Streaming.Blake2s_128.update (FStar.Ghost.hide kk))
+                    (fun s h l -> let _ = Hacl.Streaming.Blake2s_128.digest (FStar.Ghost.hide kk) s h l in ())
+                    ()
+                    32ul
+
+  (* 3. BLAKE2B (32-bit implementation) *)
   | Hash.Blake2B, ImplBlake2Core.M32 ->
-    do_incr_hash2 Hacl.Streaming.Blake2.blake2b_32_no_key_alloca
-                  Hacl.Streaming.Blake2.blake2b_32_no_key_update
-                  Hacl.Streaming.Blake2.blake2b_32_no_key_finish
-                  ()
+      let kk = { key_length = 0uy; digest_length = 64uy; last_node = false } in
+      let alloca_w () =
+        let p = Hacl.Streaming.Blake2.Params.alloca Spec.Blake2.Blake2B kk in
+        let k = LowStar.Buffer.null in
+        Hacl.Streaming.Blake2b_32.alloca_raw kk (p, k)
+      in
+      do_incr_hash2 64ul
+                    alloca_w
+                    (Hacl.Streaming.Blake2b_32.update (FStar.Ghost.hide kk))
+                    (fun s h l -> let _ = Hacl.Streaming.Blake2b_32.digest (FStar.Ghost.hide kk) s h l in ())
+                    ()
+                    64ul
+
+  (* 4. BLAKE2B (256-bit SIMD implementation) *)
   | Hash.Blake2B, ImplBlake2Core.M256 ->
-    do_incr_hash2 Hacl.Streaming.Blake2b_256.blake2b_256_no_key_alloca
-                  Hacl.Streaming.Blake2b_256.blake2b_256_no_key_update
-                  Hacl.Streaming.Blake2b_256.blake2b_256_no_key_finish
-                  ()
+      let kk = { key_length = 0uy; digest_length = 64uy; last_node = false } in
+      let alloca_w () =
+        let p = Hacl.Streaming.Blake2.Params.alloca Spec.Blake2.Blake2B kk in
+        let k = LowStar.Buffer.null in
+        Hacl.Streaming.Blake2b_256.alloca_raw kk (p, k)
+      in
+      do_incr_hash2 64ul
+                    alloca_w
+                    (Hacl.Streaming.Blake2b_256.update (FStar.Ghost.hide kk))
+                    (fun s h l -> let _ = Hacl.Streaming.Blake2b_256.digest (FStar.Ghost.hide kk) s h l in ())
+                    ()
+                    64ul
 
 let hmac_blake2 a m output keylen key datalen data =
   [@inline_let]
