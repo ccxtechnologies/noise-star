@@ -88,7 +88,7 @@ let stateful_info_buffer (a:Type0) (l: UInt32.t { UInt32.v l > 0 }) (zero: a):
       (**) let h1 = get () in
       (**) B.(modifies_only_not_unused_in loc_none h0 h1);
       c)
-    
+
     (* Free *)
     (fun _ s ->
       (* Don't leave sensitive information on the heap - that may be
@@ -117,10 +117,10 @@ let stateful_info_unit :
 
     (* Malloc from input *)
     (fun i r x -> ())
-    
+
     (* Clone *)
     (fun #_ r x -> ())
-    
+
     (* Free *)
     (fun _ s -> ())
 
@@ -158,10 +158,10 @@ type constrained_policy_function (nc : config) (always_false : bool) =
 inline_for_extraction noextract noeq
 type stateful_policy_function (nc : iconfig) (recv_psk : bool) =
 | Stateful_policy_function:
-  
+
   // Return type
   rtype: Type0 ->
-  
+
   // Used to simplify the control flow
   is_success: (rtype -> Tot bool) ->
 
@@ -170,7 +170,7 @@ type stateful_policy_function (nc : iconfig) (recv_psk : bool) =
 
   // Spec
   apply_policy_spec: constrained_policy_function (get_config nc) always_false ->
-  
+
   // Implementation
   apply_policy: (
     k:public_key_t nc ->
@@ -179,7 +179,7 @@ type stateful_policy_function (nc : iconfig) (recv_psk : bool) =
     (ensures (fun h0 r h1 ->
       B.(modifies loc_none h0 h1) /\
       is_success r = apply_policy_spec (as_seq h0 k))))  ->
-  
+
   stateful_policy_function nc recv_psk
 
 /// Two policy implementations: always true (WhatsApp flavour), always false (Wireguard flavour)
@@ -207,16 +207,16 @@ inline_for_extraction noextract noeq
 type stateful_certification_state (nc : iconfig) (peer_info : stateful_peer_info) =
 | Stateful_cstate:
   cstate:St.stateful unit ->
-  
+
   // Return type
   cst_rtype: Type0 ->
-  
+
   // Used to simplify the control flow (could always return true, for instance)
   cst_is_success: (cst_rtype -> Tot bool) ->
-  
+
   // Used to simplify the control flow
   cst_always_success: bool{cst_always_success ==> (forall r. cst_is_success r)} ->
-  
+
   // Pure operations
   certify_spec : certification_function (get_config nc) (peer_info.St.t ())
                                         (cstate.St.t ()) ->
@@ -235,7 +235,7 @@ type stateful_certification_state (nc : iconfig) (peer_info : stateful_peer_info
       cstate.St.invariant h0 state /\
       peer_info.St.invariant h0 pinfo /\
       live h0 payload /\
-      
+
       begin
       let state_loc = cstate.St.footprint state in
       let rs_loc = B.loc_buffer (rs <: buffer uint8) in
@@ -247,12 +247,12 @@ type stateful_certification_state (nc : iconfig) (peer_info : stateful_peer_info
 
     (ensures (fun h0 res h1 ->
       B.(modifies (peer_info.St.footprint pinfo) h0 h1) /\
-    
+
       cstate.St.invariant h1 state /\
       peer_info.St.invariant h1 pinfo /\
       (peer_info.St.freeable h0 pinfo ==>
        peer_info.St.freeable h1 pinfo) /\
-      
+
       begin
       let state_v0 = cstate.St.v () h0 state in
       let rs_v = B.as_seq h0 (rs <: buffer uint8) in
@@ -549,7 +549,7 @@ let enc_private_key_vsv (nc : iconfig) : size_nat = private_key_vsv nc + aead_ta
 let enc_private_key_vs (nc : iconfig) = size (enc_private_key_vsv nc)
 [@@ noextract_to "krml"] inline_for_extraction noextract
 let enc_private_key_t (idc : idconfig) =
-  type_or_unit (lbuffer uint8 (enc_private_key_vs (idc_get_nc idc))) (idc_uses_s idc) 
+  type_or_unit (lbuffer uint8 (enc_private_key_vs (idc_get_nc idc))) (idc_uses_s idc)
 
 [@@ noextract_to "krml"] inline_for_extraction noextract
 let enc_private_key_with_nonce_vsv (nc : iconfig) : size_nat =
@@ -558,7 +558,7 @@ let enc_private_key_with_nonce_vsv (nc : iconfig) : size_nat =
 let enc_private_key_with_nonce_vs (nc : iconfig) = size (enc_private_key_with_nonce_vsv nc)
 [@@ noextract_to "krml"] inline_for_extraction noextract
 let enc_private_key_with_nonce_t (idc : idconfig) =
-  type_or_unit (lbuffer uint8 (enc_private_key_with_nonce_vs (idc_get_nc idc))) (idc_uses_s idc) 
+  type_or_unit (lbuffer uint8 (enc_private_key_with_nonce_vs (idc_get_nc idc))) (idc_uses_s idc)
 
 (*** Peers *)
 
@@ -1380,7 +1380,7 @@ type device_p_create_st (idc : idconfig) =
   -> prlg : lbuffer uint8 prlg_len
   -> info : info_input_t idc
   -> sk : serialize_key_t idc
-  -> spriv : private_key_t_or_unit (idc_get_nc idc) (idc_uses_s idc) ->  
+  -> spriv : private_key_t_or_unit (idc_get_nc idc) (idc_uses_s idc) ->
   ST (device_p_or_null idc)
   (requires (fun h0 ->
     ST.is_eternal_region r /\
@@ -1413,43 +1413,22 @@ val mk_device_p_create
   (csi:config_impls (idc_get_nc idc)) :
   device_p_create_st idc
 
-[@@ noextract_to "krml"] inline_for_extraction noextract unfold
-type device_p_create_from_secret_st (idc : idconfig{idc_get_serialize idc}) =
-     r : HS.rid
-  -> cstate : idc_get_cstate_s idc
-  -> prlg_len : hashable_size_t (idc_get_nc idc)
-  -> prlg : lbuffer uint8 prlg_len
-  -> info : info_input_t idc
-  -> sk : serialize_key_t idc
-  -> spriv : enc_private_key_with_nonce_t idc ->  
-  ST (device_p_or_null idc)
-  (requires (fun h0 ->
-    ST.is_eternal_region r /\
-    live h0 prlg /\ info_input_invariant h0 info /\
-    lbuffer_or_unit_live h0 sk /\ lbuffer_or_unit_live h0 spriv /\
-    // The caller function should always recall the entropy at the very
-    // beginning, otherwise Z3 can't reason properly about it, and the
-    // resulting proof obligations failures are very hard to understand.
-    // This precondition enforces that the user has done that.
-    B.live h0 (entropy_p <: B.buffer (G.erased entropy)) /\
-    // Contrary to the simple "device_create" function, we need some disjointness
-    // hypotheses to perform AEAD decryption
-    B.all_disjoint [info_input_footprint info;
-                    region_to_loc r;
-                    lbuffer_or_unit_to_loc sk;
-                    lbuffer_or_unit_to_loc spriv] /\
-    // Hardware preconditions
-    get_aead_pre (idc_get_nc idc) /\
-    get_dh_pre (idc_get_nc idc)))
-  (ensures (fun h0 dvp h1 ->
-    B.(modifies (Lib.Buffer.loc entropy_p) h0 h1) /\
-    device_p_or_null_invariant h1 dvp /\
-    begin
+[@@ noextract_to "krml"] noextract
+let device_p_create_from_secret_post
+  (#idc : idconfig)
+  (r : HS.rid)
+  (cstate : idc_get_cstate_s idc)
+  (prlg_v : Spec.Noise.CryptoPrimitives.hashable (idc_get_config idc))
+  (info_v : info_input_s idc)
+  (sk_v : Spec.Noise.CryptoPrimitives.aead_key)
+  (s_v : option (Spec.enc_private_key_with_nonce (idc_get_config idc)))
+  (h0 h1 : HS.mem)
+  (dvp : device_p_or_null idc)
+  : GTot Type0 =
+  B.(modifies (Lib.Buffer.loc entropy_p) h0 h1) /\
+  device_p_or_null_invariant h1 dvp /\
+  begin
     let pattern = idc_get_pattern idc in
-    let prlg_v = as_seq h0 prlg in
-    let info_v = info_input_v h0 info in
-    let sk_v = lbuffer_or_unit_to_seq h0 sk in
-    let s_v = lbuffer_or_unit_to_opt_lseq h0 spriv in
     let opt_dv_v = Spec.create_device_from_secret (idc_get_dc idc) pattern prlg_v info_v sk_v s_v in
     match opt_dv_v with
     | None -> device_p_g_is_null dvp
@@ -1458,7 +1437,52 @@ type device_p_create_from_secret_st (idc : idconfig{idc_get_serialize idc}) =
       region_includes r (device_p_region_of dvp) /\
       device_p_get_cstate h1 dvp == cstate /\
       device_p_v h1 dvp == dv_v
-    end))
+  end
+
+#push-options "--z3rlimit 200 --ifuel 1"
+[@@ noextract_to "krml"] inline_for_extraction noextract unfold
+type device_p_create_from_secret_st (idc : idconfig{normalize_term #bool (idc_get_serialize idc)}) =
+     r : HS.rid
+  -> cstate : idc_get_cstate_s idc
+  -> prlg_len : hashable_size_t (idc_get_nc idc)
+  -> prlg : lbuffer uint8 prlg_len
+  -> info : info_input_t idc
+  -> sk : serialize_key_t idc { idc_get_serialize idc }
+  -> spriv : enc_private_key_with_nonce_t idc ->
+  ST (device_p_or_null idc)
+  (requires (fun h0 ->
+    ST.is_eternal_region r /\
+    live h0 prlg /\ info_input_invariant h0 info /\
+    lbuffer_or_unit_live h0 sk /\ lbuffer_or_unit_live h0 spriv /\
+    B.live h0 (entropy_p <: B.buffer (G.erased entropy)) /\
+    B.all_disjoint [info_input_footprint info;
+                    region_to_loc r;
+                    loc prlg;
+                    loc (sk <: lbuffer uint8 32ul);
+                    lbuffer_or_unit_to_loc spriv;
+                    Lib.Buffer.loc entropy_p] /\
+    get_aead_pre (idc_get_nc idc) /\
+    get_dh_pre (idc_get_nc idc)))
+  (ensures (fun h0 dvp h1 ->
+    let prlg_v_raw = as_seq h0 prlg in
+    assert (is_hashable_size (idc_get_config idc) (Seq.length prlg_v_raw));
+    let prlg_v : Spec.Noise.CryptoPrimitives.hashable (idc_get_config idc) = prlg_v_raw in
+    let info_v = info_input_v h0 info in
+    let sk_b = sk <: lbuffer uint8 32ul in
+    let sk_v_raw = as_seq h0 sk_b in
+    assert (Seq.length sk_v_raw == 32);
+    let sk_v : Spec.Noise.CryptoPrimitives.aead_key = sk_v_raw in
+    let s_v_raw = lbuffer_or_unit_to_opt_lseq h0 spriv in
+    let s_v : option (Spec.enc_private_key_with_nonce (idc_get_config idc)) =
+      match s_v_raw with
+      | None -> None
+      | Some b ->
+        assert (Seq.length b == enc_private_key_with_nonce_vsv (idc_get_nc idc));
+        Some b
+    in
+
+    device_p_create_from_secret_post r cstate prlg_v info_v sk_v s_v h0 h1 dvp))
+#pop-options
 
 [@@ noextract_to "krml"] inline_for_extraction noextract
 val mk_device_p_create_from_secret
@@ -1938,4 +1962,3 @@ let mk_device_p_deserialize_peer_secret_or_unit :
   fun #idc csi ->
   if idc_get_serialize idc && (idc_is_psk idc || idc_peers_have_s idc)
   then mk_device_p_deserialize_peer_secret #idc csi else ()
-
