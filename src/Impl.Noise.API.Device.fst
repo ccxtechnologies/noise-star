@@ -77,7 +77,7 @@ noeq type raw_peer_t_raw t0 t1 t2 t3 = {
 type raw_peer_t
   (nc : iconfig) (peer_id : id_cl)
   (peer_info : stateful_peer_info) (has_s has_psk : bool) =
-  raw_peer_t_raw 
+  raw_peer_t_raw
                  (id_cl_t peer_id) (peer_info.St.s ())
                  (public_key_t_or_unit nc has_s)
                  (preshared_key_t_or_unit has_psk)
@@ -151,7 +151,7 @@ let raw_stateful_peer_t_prim
 St.Stateful
   (* s *)
   (fun _ -> raw_peer_t nc peer_id peer_info has_s has_psk)
-  
+
   (* footprint *)
   (fun #_ p ->
     B.loc_union (peer_info.St.footprint p.p_info)
@@ -181,7 +181,7 @@ St.Stateful
 
   (* frame_invariant *)
   (fun #_ l p h0 h1 -> peer_info.St.frame_invariant l p.p_info h0 h1)
-  
+
   (* frame_freeable *)
   (fun #_ l p h0 h1 -> peer_info.St.frame_freeable l p.p_info h0 h1)
 
@@ -196,7 +196,7 @@ let raw_stateful_peer_t_input_prim
 St.Stateful
   (* s *)
   (fun _ -> raw_peer_t nc peer_id peer_info has_s has_psk)
-  
+
   (* footprint *)
   (fun #_ p ->
     B.loc_union (peer_info.St.footprint p.p_info)
@@ -218,7 +218,7 @@ St.Stateful
 
   (* frame_invariant *)
   (fun #_ l p h0 h1 -> peer_info.St.frame_invariant l p.p_info h0 h1)
-  
+
   (* frame_freeable *)
   (fun #_ l p h0 h1 -> ())
 
@@ -229,7 +229,7 @@ let raw_stateful_peer_p_prim
 St.Stateful
   (* s *)
   (fun _ -> raw_peer_p nc peer_id peer_info has_s has_psk)
-  
+
   (* footprint *)
   (fun #_ pp -> region_to_loc pp.pp_r)
 
@@ -254,7 +254,7 @@ St.Stateful
 
     region_includes pp.pp_r p_loc /\
     region_includes pp.pp_r (B.loc_addr_of_buffer pp.pp) /\
-    
+
     B.live h (lbuffer_or_unit_to_buffer p.p_s) /\
     B.live h (lbuffer_or_unit_to_buffer p.p_psk) /\
     peer_info.St.invariant h p.p_info /\
@@ -268,7 +268,7 @@ St.Stateful
     let p = B.deref h0 pp.pp in
     let peer_t_st = raw_stateful_peer_t_prim nc peer_id peer_info has_s has_psk in
     peer_t_st.St.frame_invariant l p h0 h1)
-  
+
   (* frame_freeable *)
   (fun #_ l pp h0 h1 ->
     let p = B.deref h0 pp.pp in
@@ -441,7 +441,7 @@ let raw_stateful_peer_p nc peer_id peer_info has_s has_psk =
     let p = B.index pp.pp 0ul in
     (**) let h1 = ST.get () in
     [@inline_let]
-    let peer_t_st = raw_stateful_peer_t nc peer_id peer_info has_s has_psk in    
+    let peer_t_st = raw_stateful_peer_t nc peer_id peer_info has_s has_psk in
     (**) peer_t_st.St.sc_stateful.St.frame_invariant B.loc_none p h0 h1;
     peer_t_st.St.sc_free () p;
     B.free pp.pp)
@@ -811,9 +811,17 @@ let mk_peer_p_get_info #idc out pp =
   let p = B.index pp.pp 0ul in
   (idc_get_info idc).St.smficc_copy () out p.p_info
 
+#push-options "--z3rlimit 400 --ifuel 1"
 let mk_peer_p_get_static #idc out pp =
+  let _ = normalize_term (idc_peers_have_s idc) in
+  let _ = normalize_term (peers_have_s (idc_get_pattern idc)) in
+
   let p = B.index pp.pp 0ul in
-  lbuffer_or_unit_copy out p.p_s
+  let out_b = out <: lbuffer uint8 (public_key_vs (idc_get_nc idc)) in
+  let src_b = p.p_s <: lbuffer uint8 (public_key_vs (idc_get_nc idc)) in
+
+  copy out_b src_b
+#pop-options
 
 let mk_peer_p_get_psk #idc out pp =
   let p = B.index pp.pp 0ul in
@@ -938,7 +946,7 @@ let peers_pairwise_distinct_statics  (#idc : idconfig) (peers : list (peer_s idc
   Spec.peers_pairwise_distinct_statics #(idc_get_dc idc) peers
 #pop-options
 
-/// Note that we don't request anything about the certification state: 
+/// Note that we don't request anything about the certification state:
 /// by providing precise pre and postconditions, we give enough information
 /// to the user for him to take care of the certification state. Otherwise,
 /// we would have to define several invariants/footprints to include or not
@@ -963,29 +971,29 @@ let device_t_invariant (#idc : idconfig) (h : mem) (dv : device_t idc) : GTot Ty
   let peers_loc = LL.region_of peers in
   B.all_disjoint [sk_loc; spriv_loc; spub_loc; prologue_loc; info_loc; peers_loc]
   end /\
-  
+
   // Buffers are live and freeable
   lbuffer_or_unit_live h sk /\
   lbuffer_or_unit_live h spriv /\
   lbuffer_or_unit_live h spub /\
   sized_buffer_live h prologue /\
-  
+
   lbuffer_or_unit_freeable sk /\
   lbuffer_or_unit_freeable spriv /\
   lbuffer_or_unit_freeable spub /\
   sized_buffer_freeable prologue /\
-  
+
   (* Info *)
   info_invariant h info /\
   info_freeable h info /\
 
   (* Peers' list invariant *)
   LL.invariant h peers /\
-  
+
   (* Functional specification *)
   // The peer id counter must be greater than all the peers' ids
   peers_counter_invariant #idc (peer_id_v pcounter) (LL.v h peers) /\
-  
+
   // Peers' ids must be pairwise distinct
   peers_pairwise_distinct_ids #idc (LL.v h peers) /\
 
@@ -1030,7 +1038,7 @@ let device_p_invariant (#idc : idconfig) (h : mem) (dvp : device_p idc) : GTot T
   region_includes dvp.dvp_r (B.loc_addr_of_buffer dvp.dvp) /\
 
   B.loc_disjoint (B.loc_addr_of_buffer dvp.dvp) (device_t_footprint dv) /\
-  
+
   device_t_invariant h dv
 
 let device_p_footprint (#idc : idconfig) (h : mem) (dvp : device_p idc) : GTot B.loc =
@@ -1295,7 +1303,7 @@ let device_p_t_no_removal_lem
   assert(M.list_in_listP (device_p_g_get_peers h0 dvp) (device_p_g_get_peers h1 dvp));
   assert(LL.gsame_elementsp (device_p_g_get_peers h0 dvp) h0 h1)
 
-val device_t_removed_peer 
+val device_t_removed_peer
   (#idc : idconfig) (dv : device_t idc) (pid : peer_id) (h0 h1 : mem) :
   GTot Type0
 
@@ -1654,7 +1662,7 @@ let mk_device_p_create_has_s #idc csi r0 cstate prlg_len prlg info sk spriv =
   let sk' = lbuffer_or_unit_malloc_copy r_s (u8 0) sk in
   let spriv' = lbuffer_or_unit_malloc_copy r_s (u8 0) spriv in
   let spub' : public_key_t_or_unit (idc_get_nc idc) (idc_uses_s idc) =
-    lbuffer_or_unit_malloc r_s (u8 0) in  
+    lbuffer_or_unit_malloc r_s (u8 0) in
   let res = idh_sp csi spub' spriv' in
   (**) let h1 = ST.get () in
   begin
@@ -1707,7 +1715,7 @@ val serialize_bytes
   (csi:config_impls (idc_get_nc idc))
   (sk : serialize_key_t idc)
   (name : info_input_t idc)
-  (inlen : size_t{size_v inlen <= aead_max_input (idc_get_config idc)})    
+  (inlen : size_t{size_v inlen <= aead_max_input (idc_get_config idc)})
   (input : lbuffer uint8 inlen)
   (c : buffer uint8{B.length c = size_v inlen + aead_tag_size + aead_nonce_size}) :
   Stack (rtype encrypt_return_type)
@@ -2219,7 +2227,7 @@ val mk_device_t_remove_peer :
   // We take a non-0 id: it is tested in mk_device_p_remove_peer
   -> pid:peer_id_t idc ->
   ST unit
-  (requires (fun h0 ->    
+  (requires (fun h0 ->
     device_t_invariant h0 dv))
   (ensures (fun h0 b h1 ->
     B.(modifies (device_t_footprint dv) h0 h1) /\
