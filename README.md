@@ -1,3 +1,14 @@
+## Notes on this fork
+
+This fork was a failed attempt to make updates so that NOISE\* can work with the latest
+version of HACL\*. I'm archiving it in case someone else can make use of it.
+
+The verifier is getting stuck on mk\_device\_p\_create\_from\_secret\_has\_s
+in Impl.Noise.API.Device.fst and nothing I have tried has helped. And even if I eventually
+get it to work it seems likely I will run into additional issues that I don't understand.
+
+Maybe someone with more F\* can get it to work.
+
 Noise\*
 =======
 
